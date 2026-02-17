@@ -170,7 +170,7 @@ function renderArticleDetail() {
   }
 
   const country = COUNTRIES.find(c => c.id === article.country);
-  document.title = `${article.title} - 漫遊世界`;
+  document.title = `${article.title} - 瑄瑄的旅遊日記`;
 
   incrementViews(article.id);
   const currentViews = getViews(article);
