@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>漫遊世界 - 旅遊札記</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="container top-bar-inner">
+      <span class="top-bar-text">用腳步丈量世界，用文字記錄感動</span>
+      <div class="social-links">
+        <a href="#" aria-label="Facebook">FB</a>
+        <a href="#" aria-label="Instagram">IG</a>
+        <a href="#" aria-label="YouTube">YT</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">✈</span>
+        <div class="logo-text">
+          <h1>漫遊世界</h1>
+          <p class="logo-subtitle">Travel Journal</p>
+        </div>
+      </a>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="main-nav" id="mainNav">
+    <div class="container">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="index.html" class="nav-link active" data-country="all">全部文章</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero Banner -->
+  <section class="hero" id="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <h2 class="hero-title">探索世界的每一個角落</h2>
+      <p class="hero-desc">從亞洲到歐洲，分享最真實的旅行體驗與實用攻略</p>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container main-grid">
+      <!-- Article List -->
+      <section class="article-list" id="articleList">
+        <div class="section-header">
+          <h2 class="section-title" id="sectionTitle">最新文章</h2>
+          <span class="article-count" id="articleCount"></span>
+        </div>
+        <div class="articles-grid" id="articlesGrid">
+          <!-- Articles rendered by JS -->
+        </div>
+        <div class="load-more" id="loadMore" style="display:none;">
+          <button class="btn btn-load-more" id="loadMoreBtn">載入更多文章</button>
+        </div>
+      </section>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <!-- Search -->
+        <div class="sidebar-widget search-widget">
+          <h3 class="widget-title">搜尋文章</h3>
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="輸入關鍵字...">
+            <button class="search-btn" id="searchBtn">🔍</button>
+          </div>
+        </div>
+
+        <!-- About -->
+        <div class="sidebar-widget about-widget">
+          <h3 class="widget-title">關於我</h3>
+          <div class="about-content">
+            <div class="about-avatar">✈️</div>
+            <p>嗨！我是一個熱愛旅行的背包客，喜歡用相機和文字記錄旅途中的每一個感動。希望透過這個部落格，能把旅行的美好分享給大家。</p>
+          </div>
+        </div>
+
+        <!-- Country List -->
+        <div class="sidebar-widget">
+          <h3 class="widget-title">國家分類</h3>
+          <ul class="category-list" id="categoryList">
+            <!-- Rendered by JS -->
+          </ul>
+        </div>
+
+        <!-- Popular Articles -->
+        <div class="sidebar-widget">
+          <h3 class="widget-title">熱門文章</h3>
+          <ul class="popular-list" id="popularList">
+            <!-- Rendered by JS -->
+          </ul>
+        </div>
+
+        <!-- Tags -->
+        <div class="sidebar-widget">
+          <h3 class="widget-title">熱門標籤</h3>
+          <div class="tag-cloud" id="tagCloud">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h3>漫遊世界</h3>
+          <p>用腳步丈量世界，用文字記錄感動。<br>分享最真實的旅行體驗與實用攻略。</p>
+        </div>
+        <div class="footer-col">
+          <h3>國家分類</h3>
+          <ul class="footer-links" id="footerCountries">
+            <!-- Rendered by JS -->
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>快速連結</h3>
+          <ul class="footer-links">
+            <li><a href="index.html">首頁</a></li>
+            <li><a href="#">關於我</a></li>
+            <li><a href="#">合作邀約</a></li>
+            <li><a href="#">隱私政策</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>社群媒體</h3>
+          <div class="footer-social">
+            <a href="#">Facebook</a>
+            <a href="#">Instagram</a>
+            <a href="#">YouTube</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 漫遊世界 Travel Journal. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

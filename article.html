@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章 - 漫遊世界</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="container top-bar-inner">
+      <span class="top-bar-text">用腳步丈量世界，用文字記錄感動</span>
+      <div class="social-links">
+        <a href="#" aria-label="Facebook">FB</a>
+        <a href="#" aria-label="Instagram">IG</a>
+        <a href="#" aria-label="YouTube">YT</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container">
+      <a href="index.html" class="logo">
+        <span class="logo-icon">✈</span>
+        <div class="logo-text">
+          <h1>漫遊世界</h1>
+          <p class="logo-subtitle">Travel Journal</p>
+        </div>
+      </a>
+    </div>
+  </header>
+
+  <!-- Navigation -->
+  <nav class="main-nav" id="mainNav">
+    <div class="container">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+      <ul class="nav-menu" id="navMenu">
+        <li><a href="index.html" class="nav-link" data-country="all">全部文章</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Article Content -->
+  <main class="main-content article-page">
+    <div class="container main-grid">
+      <article class="article-detail" id="articleDetail">
+        <!-- Rendered by JS -->
+      </article>
+
+      <!-- Sidebar -->
+      <aside class="sidebar">
+        <div class="sidebar-widget search-widget">
+          <h3 class="widget-title">搜尋文章</h3>
+          <div class="search-box">
+            <input type="text" id="searchInput" placeholder="輸入關鍵字...">
+            <button class="search-btn" id="searchBtn">🔍</button>
+          </div>
+        </div>
+
+        <div class="sidebar-widget">
+          <h3 class="widget-title">國家分類</h3>
+          <ul class="category-list" id="categoryList"></ul>
+        </div>
+
+        <div class="sidebar-widget">
+          <h3 class="widget-title">熱門文章</h3>
+          <ul class="popular-list" id="popularList"></ul>
+        </div>
+
+        <div class="sidebar-widget">
+          <h3 class="widget-title">相關文章</h3>
+          <ul class="popular-list" id="relatedList"></ul>
+        </div>
+      </aside>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h3>漫遊世界</h3>
+          <p>用腳步丈量世界，用文字記錄感動。<br>分享最真實的旅行體驗與實用攻略。</p>
+        </div>
+        <div class="footer-col">
+          <h3>國家分類</h3>
+          <ul class="footer-links" id="footerCountries"></ul>
+        </div>
+        <div class="footer-col">
+          <h3>快速連結</h3>
+          <ul class="footer-links">
+            <li><a href="index.html">首頁</a></li>
+            <li><a href="#">關於我</a></li>
+            <li><a href="#">合作邀約</a></li>
+            <li><a href="#">隱私政策</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>社群媒體</h3>
+          <div class="footer-social">
+            <a href="#">Facebook</a>
+            <a href="#">Instagram</a>
+            <a href="#">YouTube</a>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 漫遊世界 Travel Journal. All rights reserved.</p>
+      </div>
+    </div>
+  </footer>
+
+  <button class="back-to-top" id="backToTop" aria-label="Back to top">↑</button>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
