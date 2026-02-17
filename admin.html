@@ -506,16 +506,33 @@
       }
     }
 
+    function compressImage(file, callback) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxW = 800;
+          let w = img.width, h = img.height;
+          if (w > maxW) { h = h * maxW / w; w = maxW; }
+          canvas.width = w;
+          canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          callback(canvas.toDataURL('image/jpeg', 0.7));
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
     function handleImageUpload(event) {
       const files = event.target.files;
       for (const file of files) {
         if (!file.type.startsWith('image/')) continue;
-        const reader = new FileReader();
-        reader.onload = function(e) {
+        compressImage(file, function(dataUrl) {
           document.getElementById('formContent').focus();
-          document.execCommand('insertHTML', false, `<img src="${e.target.result}" alt=""><br>`);
-        };
-        reader.readAsDataURL(file);
+          document.execCommand('insertHTML', false, `<img src="${dataUrl}" alt=""><br>`);
+        });
       }
       event.target.value = '';
     }
@@ -530,11 +547,9 @@
           if (item.type.startsWith('image/')) {
             e.preventDefault();
             const file = item.getAsFile();
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-              document.execCommand('insertHTML', false, `<img src="${ev.target.result}" alt=""><br>`);
-            };
-            reader.readAsDataURL(file);
+            compressImage(file, function(dataUrl) {
+              document.execCommand('insertHTML', false, `<img src="${dataUrl}" alt=""><br>`);
+            });
             return;
           }
         }
@@ -657,15 +672,20 @@
       if (editId) {
         const idx = articles.findIndex(a => a.id === parseInt(editId));
         if (idx >= 0) articles[idx] = article;
-        showToast('文章已更新！');
       } else {
         articles.push(article);
-        showToast('文章已發布！');
       }
 
-      saveUserArticles(articles);
-      clearForm();
-      renderArticleList();
+      try {
+        saveUserArticles(articles);
+        showToast(editId ? '文章已更新！' : '文章已發布！');
+        clearForm();
+        renderArticleList();
+      } catch (e) {
+        showToast('儲存失敗！圖片可能太大，請改用圖片網址', true);
+        console.error('Save failed:', e);
+        return;
+      }
 
       // Switch to manage tab
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
