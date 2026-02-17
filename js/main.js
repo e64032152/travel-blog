@@ -1,3 +1,8 @@
+function getAllArticles() {
+  const userArticles = JSON.parse(localStorage.getItem('user_articles') || '[]');
+  return [...ARTICLES, ...userArticles];
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const isArticlePage = window.location.pathname.includes('article.html');
 
@@ -38,7 +43,7 @@ function initHomepage() {
   const country = getUrlParam('country');
   const tag = getUrlParam('tag');
   const search = getUrlParam('search');
-  let articles = [...ARTICLES];
+  let articles = [...getAllArticles()];
 
   if (country && country !== 'all') {
     articles = articles.filter(a => a.country === country);
@@ -154,7 +159,7 @@ function renderArticles(articles) {
 /* ===== Article Detail ===== */
 function renderArticleDetail() {
   const id = parseInt(getUrlParam('id'));
-  const article = ARTICLES.find(a => a.id === id);
+  const article = getAllArticles().find(a => a.id === id);
   const container = document.getElementById('articleDetail');
 
   if (!article) {
@@ -175,8 +180,10 @@ function renderArticleDetail() {
   incrementViews(article.id);
   const currentViews = getViews(article);
 
-  const prevArticle = ARTICLES.find(a => a.id === id - 1);
-  const nextArticle = ARTICLES.find(a => a.id === id + 1);
+  const allSorted = getAllArticles().sort((a, b) => new Date(b.date) - new Date(a.date));
+  const currentIdx = allSorted.findIndex(a => a.id === id);
+  const prevArticle = currentIdx < allSorted.length - 1 ? allSorted[currentIdx + 1] : null;
+  const nextArticle = currentIdx > 0 ? allSorted[currentIdx - 1] : null;
 
   container.innerHTML = `
     <div class="article-hero-image">
@@ -224,7 +231,7 @@ function renderRelatedArticles(article) {
   const relatedList = document.getElementById('relatedList');
   if (!relatedList) return;
 
-  const related = ARTICLES
+  const related = getAllArticles()
     .filter(a => a.country === article.country && a.id !== article.id)
     .slice(0, 4);
 
@@ -252,7 +259,7 @@ function buildCategoryList() {
   if (!list) return;
 
   COUNTRIES.forEach(country => {
-    const count = ARTICLES.filter(a => a.country === country.id).length;
+    const count = getAllArticles().filter(a => a.country === country.id).length;
     const li = document.createElement('li');
     li.innerHTML = `<a href="index.html?country=${country.id}">
       <span>${country.emoji} ${country.name}</span>
@@ -266,7 +273,7 @@ function buildPopularList() {
   const list = document.getElementById('popularList');
   if (!list) return;
 
-  const popular = [...ARTICLES]
+  const popular = [...getAllArticles()]
     .sort((a, b) => getViews(b) - getViews(a))
     .slice(0, 5);
 
@@ -286,7 +293,7 @@ function buildTagCloud() {
   const cloud = document.getElementById('tagCloud');
   if (!cloud) return;
 
-  const allTags = ARTICLES.flatMap(a => a.tags);
+  const allTags = getAllArticles().flatMap(a => a.tags);
   const tagCount = {};
   allTags.forEach(t => { tagCount[t] = (tagCount[t] || 0) + 1; });
 

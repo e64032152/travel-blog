@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文章管理 - 瑄瑄的旅遊日記</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #2d6a4f;
+      --primary-dark: #1b4332;
+      --primary-light: #52b788;
+      --bg: #f5f6fa;
+      --bg-white: #ffffff;
+      --text: #2d3436;
+      --text-light: #636e72;
+      --border: #e0e0e0;
+      --danger: #e74c3c;
+      --danger-hover: #c0392b;
+      --radius: 12px;
+      --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+    .admin-header {
+      background: var(--primary-dark);
+      color: #fff;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .admin-header h1 { font-size: 20px; font-weight: 700; }
+    .admin-header a {
+      color: rgba(255,255,255,0.8);
+      text-decoration: none;
+      font-size: 14px;
+      padding: 6px 16px;
+      border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 6px;
+      transition: 0.3s;
+    }
+    .admin-header a:hover { background: rgba(255,255,255,0.1); color: #fff; }
+
+    .admin-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0;
+      margin-bottom: 24px;
+      border-bottom: 2px solid var(--border);
+    }
+    .tab-btn {
+      padding: 12px 24px;
+      background: none;
+      border: none;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-light);
+      cursor: pointer;
+      border-bottom: 3px solid transparent;
+      margin-bottom: -2px;
+      font-family: inherit;
+      transition: 0.2s;
+    }
+    .tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+    .tab-btn:hover { color: var(--primary); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Form Styles */
+    .form-card {
+      background: var(--bg-white);
+      border-radius: var(--radius);
+      padding: 28px;
+      box-shadow: var(--shadow);
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+    .form-group label .required {
+      color: var(--danger);
+      margin-left: 2px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: 15px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--primary-light);
+    }
+    .form-group textarea {
+      min-height: 200px;
+      resize: vertical;
+      line-height: 1.8;
+    }
+    .form-group .hint {
+      font-size: 12px;
+      color: var(--text-light);
+      margin-top: 4px;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .image-preview {
+      margin-top: 8px;
+      max-width: 300px;
+      border-radius: 8px;
+      overflow: hidden;
+      display: none;
+    }
+    .image-preview img {
+      width: 100%;
+      display: block;
+    }
+
+    .btn {
+      padding: 10px 28px;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      transition: 0.2s;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-danger {
+      background: var(--danger);
+      color: #fff;
+    }
+    .btn-danger:hover { background: var(--danger-hover); }
+    .btn-secondary {
+      background: #dfe6e9;
+      color: var(--text);
+    }
+    .btn-secondary:hover { background: #b2bec3; }
+    .btn-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    /* Article List Styles */
+    .article-table {
+      background: var(--bg-white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+    .article-row {
+      display: grid;
+      grid-template-columns: 80px 1fr 100px 100px 120px;
+      gap: 12px;
+      align-items: center;
+      padding: 14px 20px;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+    .article-row:hover { background: #f8f9fa; }
+    .article-row:last-child { border-bottom: none; }
+    .article-row.header {
+      background: var(--primary-dark);
+      color: #fff;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .article-row.header:hover { background: var(--primary-dark); }
+    .article-row-thumb {
+      width: 70px;
+      height: 48px;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .article-row-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .article-row-title {
+      font-size: 14px;
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .article-row-country {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    .article-row-date {
+      font-size: 13px;
+      color: var(--text-light);
+    }
+    .article-row-actions {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-sm {
+      padding: 5px 12px;
+      font-size: 12px;
+      border-radius: 6px;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-light);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 14px 24px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      z-index: 9999;
+      opacity: 0;
+      transform: translateY(-10px);
+      transition: 0.3s;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .toast.error { background: var(--danger); }
+
+    @media (max-width: 768px) {
+      .form-row { grid-template-columns: 1fr; }
+      .article-row {
+        grid-template-columns: 1fr;
+        gap: 6px;
+      }
+      .article-row.header { display: none; }
+      .article-row-thumb { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="admin-header">
+    <h1>📝 文章管理後台</h1>
+    <a href="index.html">← 回到網站</a>
+  </header>
+
+  <div class="admin-container">
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="add">新增文章</button>
+      <button class="tab-btn" data-tab="manage">管理文章 (<span id="articleCountBadge">0</span>)</button>
+    </div>
+
+    <!-- Add Article Tab -->
+    <div class="tab-content active" id="tab-add">
+      <div class="form-card">
+        <input type="hidden" id="editId" value="">
+        <div class="form-row">
+          <div class="form-group">
+            <label>文章標題 <span class="required">*</span></label>
+            <input type="text" id="formTitle" placeholder="例：東京五天四夜自由行">
+          </div>
+          <div class="form-group">
+            <label>國家 <span class="required">*</span></label>
+            <select id="formCountry"></select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>文章摘要 <span class="required">*</span></label>
+          <textarea id="formExcerpt" rows="3" placeholder="簡短描述這篇文章的內容...（顯示在首頁卡片上）" style="min-height:80px;"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>文章內容 <span class="required">*</span></label>
+          <textarea id="formContent" placeholder="寫下你的旅遊故事...&#10;&#10;可以用以下格式：&#10;### 小標題（會自動變成段落標題）&#10;一般文字會自動變成段落"></textarea>
+          <p class="hint">用 ### 開頭的行會變成小標題，其他行會變成段落文字</p>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>封面圖片網址</label>
+            <input type="text" id="formImage" placeholder="https://... （留空使用預設圖片）">
+            <div class="image-preview" id="imagePreview">
+              <img id="previewImg" src="" alt="preview">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>標籤</label>
+            <input type="text" id="formTags" placeholder="用逗號分隔，例：自由行, 攻略, 美食">
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>發布日期</label>
+            <input type="date" id="formDate">
+          </div>
+          <div class="form-group">
+            <label>閱讀時間（分鐘）</label>
+            <input type="number" id="formReadTime" value="5" min="1" max="60">
+          </div>
+        </div>
+
+        <div class="btn-group">
+          <button class="btn btn-primary" id="btnSave">發布文章</button>
+          <button class="btn btn-secondary" id="btnClear">清空表單</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Manage Articles Tab -->
+    <div class="tab-content" id="tab-manage">
+      <div class="article-table" id="articleTable">
+        <div class="article-row header">
+          <div>縮圖</div>
+          <div>標題</div>
+          <div>國家</div>
+          <div>日期</div>
+          <div>操作</div>
+        </div>
+        <!-- rows rendered by JS -->
+      </div>
+      <div class="empty-state" id="emptyState" style="display:none;">
+        <div class="icon">📄</div>
+        <h3>還沒有新增任何文章</h3>
+        <p>點上方的「新增文章」開始寫你的第一篇！</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="js/data.js"></script>
+  <script>
+    const STORAGE_KEY = 'user_articles';
+
+    function getUserArticles() {
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    }
+    function saveUserArticles(articles) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(articles));
+    }
+    function getNextId() {
+      const userArticles = getUserArticles();
+      const maxBuiltIn = Math.max(...ARTICLES.map(a => a.id), 0);
+      const maxUser = userArticles.length > 0 ? Math.max(...userArticles.map(a => a.id)) : maxBuiltIn;
+      return Math.max(maxBuiltIn, maxUser) + 1;
+    }
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.className = 'toast' + (isError ? ' error' : '');
+      setTimeout(() => t.classList.add('show'), 10);
+      setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    function markdownToHtml(text) {
+      return text.split('\n').map(line => {
+        line = line.trim();
+        if (!line) return '';
+        if (line.startsWith('### ')) return `<h3>${line.slice(4)}</h3>`;
+        return `<p>${line}</p>`;
+      }).join('\n');
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', () => {
+      const select = document.getElementById('formCountry');
+      COUNTRIES.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c.id;
+        opt.textContent = `${c.emoji} ${c.name}`;
+        select.appendChild(opt);
+      });
+
+      document.getElementById('formDate').value = new Date().toISOString().split('T')[0];
+
+      // Image preview
+      document.getElementById('formImage').addEventListener('input', e => {
+        const url = e.target.value.trim();
+        const preview = document.getElementById('imagePreview');
+        const img = document.getElementById('previewImg');
+        if (url) {
+          img.src = url;
+          preview.style.display = 'block';
+          img.onerror = () => { preview.style.display = 'none'; };
+        } else {
+          preview.style.display = 'none';
+        }
+      });
+
+      // Tabs
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+          btn.classList.add('active');
+          document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+        });
+      });
+
+      // Save
+      document.getElementById('btnSave').addEventListener('click', saveArticle);
+      document.getElementById('btnClear').addEventListener('click', clearForm);
+
+      renderArticleList();
+    });
+
+    function saveArticle() {
+      const title = document.getElementById('formTitle').value.trim();
+      const country = document.getElementById('formCountry').value;
+      const excerpt = document.getElementById('formExcerpt').value.trim();
+      const content = document.getElementById('formContent').value.trim();
+      const image = document.getElementById('formImage').value.trim();
+      const tags = document.getElementById('formTags').value.trim();
+      const date = document.getElementById('formDate').value;
+      const readTime = parseInt(document.getElementById('formReadTime').value) || 5;
+      const editId = document.getElementById('editId').value;
+
+      if (!title || !excerpt || !content) {
+        showToast('請填寫標題、摘要和內容！', true);
+        return;
+      }
+
+      const articles = getUserArticles();
+      const article = {
+        id: editId ? parseInt(editId) : getNextId(),
+        country,
+        title,
+        excerpt,
+        content: markdownToHtml(content),
+        image: image || `https://picsum.photos/seed/${Date.now()}/800/500`,
+        date: date || new Date().toISOString().split('T')[0],
+        tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
+        readTime,
+        views: 0,
+        isUserArticle: true,
+      };
+
+      if (editId) {
+        const idx = articles.findIndex(a => a.id === parseInt(editId));
+        if (idx >= 0) articles[idx] = article;
+        showToast('文章已更新！');
+      } else {
+        articles.push(article);
+        showToast('文章已發布！');
+      }
+
+      saveUserArticles(articles);
+      clearForm();
+      renderArticleList();
+
+      // Switch to manage tab
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector('[data-tab="manage"]').classList.add('active');
+      document.getElementById('tab-manage').classList.add('active');
+    }
+
+    function clearForm() {
+      document.getElementById('formTitle').value = '';
+      document.getElementById('formExcerpt').value = '';
+      document.getElementById('formContent').value = '';
+      document.getElementById('formImage').value = '';
+      document.getElementById('formTags').value = '';
+      document.getElementById('formReadTime').value = '5';
+      document.getElementById('formDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('editId').value = '';
+      document.getElementById('imagePreview').style.display = 'none';
+      document.getElementById('btnSave').textContent = '發布文章';
+    }
+
+    function editArticle(id) {
+      const articles = getUserArticles();
+      const article = articles.find(a => a.id === id);
+      if (!article) return;
+
+      document.getElementById('editId').value = id;
+      document.getElementById('formTitle').value = article.title;
+      document.getElementById('formCountry').value = article.country;
+      document.getElementById('formExcerpt').value = article.excerpt;
+      document.getElementById('formContent').value = htmlToMarkdown(article.content);
+      document.getElementById('formImage').value = article.image;
+      document.getElementById('formTags').value = article.tags.join(', ');
+      document.getElementById('formDate').value = article.date;
+      document.getElementById('formReadTime').value = article.readTime;
+      document.getElementById('btnSave').textContent = '更新文章';
+
+      // Switch to add tab
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.querySelector('[data-tab="add"]').classList.add('active');
+      document.getElementById('tab-add').classList.add('active');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('已載入文章，修改後按「更新文章」');
+    }
+
+    function htmlToMarkdown(html) {
+      return html
+        .replace(/<h3>(.*?)<\/h3>/g, '### $1')
+        .replace(/<p>(.*?)<\/p>/g, '$1')
+        .replace(/<img[^>]*>/g, '')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim();
+    }
+
+    function deleteArticle(id) {
+      if (!confirm('確定要刪除這篇文章嗎？')) return;
+      const articles = getUserArticles().filter(a => a.id !== id);
+      saveUserArticles(articles);
+      renderArticleList();
+      showToast('文章已刪除');
+    }
+
+    function renderArticleList() {
+      const articles = getUserArticles();
+      const table = document.getElementById('articleTable');
+      const empty = document.getElementById('emptyState');
+      const badge = document.getElementById('articleCountBadge');
+
+      badge.textContent = articles.length;
+
+      // Remove old rows (keep header)
+      table.querySelectorAll('.article-row:not(.header)').forEach(r => r.remove());
+
+      if (articles.length === 0) {
+        empty.style.display = 'block';
+        table.style.display = 'none';
+        return;
+      }
+
+      empty.style.display = 'none';
+      table.style.display = 'block';
+
+      articles.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(article => {
+        const country = COUNTRIES.find(c => c.id === article.country);
+        const row = document.createElement('div');
+        row.className = 'article-row';
+        row.innerHTML = `
+          <div class="article-row-thumb">
+            <img src="${article.image}" alt="" loading="lazy">
+          </div>
+          <div class="article-row-title">${article.title}</div>
+          <div class="article-row-country">${country ? country.emoji + ' ' + country.name : ''}</div>
+          <div class="article-row-date">${article.date}</div>
+          <div class="article-row-actions">
+            <button class="btn btn-sm btn-primary" onclick="editArticle(${article.id})">編輯</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteArticle(${article.id})">刪除</button>
+          </div>`;
+        table.appendChild(row);
+      });
+    }
+  </script>
+</body>
+</html>
