@@ -3,6 +3,15 @@ function getAllArticles() {
   return [...ARTICLES, ...userArticles];
 }
 
+function getAllCountries() {
+  const customCountries = JSON.parse(localStorage.getItem('custom_countries') || '[]');
+  return [...COUNTRIES, ...customCountries];
+}
+
+function findCountry(id) {
+  return getAllCountries().find(c => c.id === id);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const isArticlePage = window.location.pathname.includes('article.html');
 
@@ -22,7 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ===== Navigation ===== */
 function buildNav() {
   const navMenu = document.getElementById('navMenu');
-  COUNTRIES.forEach(country => {
+  getAllCountries().forEach(country => {
     const li = document.createElement('li');
     li.innerHTML = `<a href="index.html?country=${country.id}" class="nav-link" data-country="${country.id}">
       <span class="country-emoji">${country.emoji}</span>${country.name}
@@ -47,7 +56,7 @@ function initHomepage() {
 
   if (country && country !== 'all') {
     articles = articles.filter(a => a.country === country);
-    const countryInfo = COUNTRIES.find(c => c.id === country);
+    const countryInfo = findCountry(country);
     const title = document.getElementById('sectionTitle');
     if (countryInfo) {
       title.textContent = `${countryInfo.emoji} ${countryInfo.name}旅遊文章`;
@@ -110,7 +119,7 @@ function renderArticles(articles) {
 
     grid.innerHTML = '';
     visible.forEach((article, index) => {
-      const country = COUNTRIES.find(c => c.id === article.country);
+      const country = findCountry(article.country);
       const card = document.createElement('div');
       card.className = `article-card${index === 0 ? ' featured' : ''}`;
       card.innerHTML = `
@@ -174,7 +183,7 @@ function renderArticleDetail() {
     return;
   }
 
-  const country = COUNTRIES.find(c => c.id === article.country);
+  const country = findCountry(article.country);
   document.title = `${article.title} - 瑄瑄的旅遊日記`;
 
   incrementViews(article.id);
@@ -258,7 +267,7 @@ function buildCategoryList() {
   const list = document.getElementById('categoryList');
   if (!list) return;
 
-  COUNTRIES.forEach(country => {
+  getAllCountries().forEach(country => {
     const count = getAllArticles().filter(a => a.country === country.id).length;
     const li = document.createElement('li');
     li.innerHTML = `<a href="index.html?country=${country.id}">
@@ -311,7 +320,7 @@ function buildFooterCountries() {
   const list = document.getElementById('footerCountries');
   if (!list) return;
 
-  list.innerHTML = COUNTRIES
+  list.innerHTML = getAllCountries()
     .map(c => `<li><a href="index.html?country=${c.id}">${c.emoji} ${c.name}</a></li>`)
     .join('');
 }

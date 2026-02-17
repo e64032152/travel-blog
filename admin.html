@@ -304,7 +304,13 @@
           </div>
           <div class="form-group">
             <label>國家 <span class="required">*</span></label>
-            <select id="formCountry"></select>
+            <select id="formCountrySelect" style="margin-bottom:8px;">
+              <option value="_custom">✏️ 自訂國家（手動輸入）</option>
+            </select>
+            <div id="customCountryFields" style="display:flex;gap:8px;">
+              <input type="text" id="formCountryName" placeholder="國家名稱，例：日本" style="flex:1;">
+              <input type="text" id="formCountryEmoji" placeholder="國旗 emoji" style="width:80px;text-align:center;">
+            </div>
           </div>
         </div>
 
@@ -409,13 +415,32 @@
 
     // Init
     document.addEventListener('DOMContentLoaded', () => {
-      const select = document.getElementById('formCountry');
+      const select = document.getElementById('formCountrySelect');
       COUNTRIES.forEach(c => {
         const opt = document.createElement('option');
         opt.value = c.id;
         opt.textContent = `${c.emoji} ${c.name}`;
         select.appendChild(opt);
       });
+
+      // Show/hide custom fields
+      const customFields = document.getElementById('customCountryFields');
+      select.addEventListener('change', () => {
+        if (select.value === '_custom') {
+          customFields.style.display = 'flex';
+          document.getElementById('formCountryName').value = '';
+          document.getElementById('formCountryEmoji').value = '';
+        } else {
+          customFields.style.display = 'none';
+          const c = COUNTRIES.find(x => x.id === select.value);
+          if (c) {
+            document.getElementById('formCountryName').value = c.name;
+            document.getElementById('formCountryEmoji').value = c.emoji;
+          }
+        }
+      });
+      // Default: show custom fields since _custom is first option
+      customFields.style.display = 'flex';
 
       document.getElementById('formDate').value = new Date().toISOString().split('T')[0];
 
@@ -452,7 +477,9 @@
 
     function saveArticle() {
       const title = document.getElementById('formTitle').value.trim();
-      const country = document.getElementById('formCountry').value;
+      const countrySelect = document.getElementById('formCountrySelect').value;
+      const countryName = document.getElementById('formCountryName').value.trim();
+      const countryEmoji = document.getElementById('formCountryEmoji').value.trim() || '🌍';
       const excerpt = document.getElementById('formExcerpt').value.trim();
       const content = document.getElementById('formContent').value.trim();
       const image = document.getElementById('formImage').value.trim();
@@ -465,11 +492,29 @@
         showToast('請填寫標題、摘要和內容！', true);
         return;
       }
+      if (countrySelect === '_custom' && !countryName) {
+        showToast('請輸入國家名稱！', true);
+        return;
+      }
+
+      // Handle country
+      let countryId;
+      if (countrySelect !== '_custom') {
+        countryId = countrySelect;
+      } else {
+        countryId = countryName.toLowerCase().replace(/\s+/g, '-');
+        // Save custom country to localStorage
+        const customCountries = JSON.parse(localStorage.getItem('custom_countries') || '[]');
+        if (!customCountries.find(c => c.id === countryId)) {
+          customCountries.push({ id: countryId, name: countryName, emoji: countryEmoji, description: countryName + '旅遊' });
+          localStorage.setItem('custom_countries', JSON.stringify(customCountries));
+        }
+      }
 
       const articles = getUserArticles();
       const article = {
         id: editId ? parseInt(editId) : getNextId(),
-        country,
+        country: countryId,
         title,
         excerpt,
         content: markdownToHtml(content),
@@ -521,7 +566,22 @@
 
       document.getElementById('editId').value = id;
       document.getElementById('formTitle').value = article.title;
-      document.getElementById('formCountry').value = article.country;
+      // Set country
+      const builtInCountry = COUNTRIES.find(c => c.id === article.country);
+      const sel = document.getElementById('formCountrySelect');
+      if (builtInCountry) {
+        sel.value = article.country;
+        document.getElementById('customCountryFields').style.display = 'none';
+        document.getElementById('formCountryName').value = builtInCountry.name;
+        document.getElementById('formCountryEmoji').value = builtInCountry.emoji;
+      } else {
+        sel.value = '_custom';
+        document.getElementById('customCountryFields').style.display = 'flex';
+        const customCountries = JSON.parse(localStorage.getItem('custom_countries') || '[]');
+        const cc = customCountries.find(c => c.id === article.country);
+        document.getElementById('formCountryName').value = cc ? cc.name : article.country;
+        document.getElementById('formCountryEmoji').value = cc ? cc.emoji : '🌍';
+      }
       document.getElementById('formExcerpt').value = article.excerpt;
       document.getElementById('formContent').value = htmlToMarkdown(article.content);
       document.getElementById('formImage').value = article.image;
