@@ -1,6 +1,13 @@
 function getAllArticles() {
   const userArticles = JSON.parse(localStorage.getItem('user_articles') || '[]');
-  return [...ARTICLES, ...userArticles];
+  const editedBuiltIn = JSON.parse(localStorage.getItem('edited_builtin_articles') || '{}');
+  const deletedBuiltIn = JSON.parse(localStorage.getItem('deleted_builtin_articles') || '[]');
+
+  const builtInFiltered = ARTICLES
+    .filter(a => !deletedBuiltIn.includes(a.id))
+    .map(a => editedBuiltIn[a.id] ? { ...a, ...editedBuiltIn[a.id] } : a);
+
+  return [...builtInFiltered, ...userArticles];
 }
 
 function getAllCountries() {

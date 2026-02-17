@@ -366,6 +366,7 @@
     <div class="tab-content active" id="tab-add">
       <div class="form-card">
         <input type="hidden" id="editId" value="">
+        <input type="hidden" id="editIsBuiltIn" value="">
         <div class="form-row">
           <div class="form-group">
             <label>文章標題 <span class="required">*</span></label>
@@ -660,9 +661,7 @@
         }
       }
 
-      const articles = getUserArticles();
-      const article = {
-        id: editId ? parseInt(editId) : getNextId(),
+      const articleData = {
         country: countryId,
         title,
         excerpt,
@@ -671,19 +670,31 @@
         date: date || new Date().toISOString().split('T')[0],
         tags: tags ? tags.split(',').map(t => t.trim()).filter(Boolean) : [],
         readTime,
-        views: 0,
-        isUserArticle: true,
       };
 
-      if (editId) {
-        const idx = articles.findIndex(a => a.id === parseInt(editId));
-        if (idx >= 0) articles[idx] = article;
-      } else {
-        articles.push(article);
-      }
+      const editIsBuiltIn = document.getElementById('editIsBuiltIn').value;
 
       try {
-        saveUserArticles(articles);
+        if (editId && editIsBuiltIn) {
+          const edited = getEditedBuiltIn();
+          edited[parseInt(editId)] = articleData;
+          saveEditedBuiltIn(edited);
+        } else {
+          const articles = getUserArticles();
+          const article = {
+            id: editId ? parseInt(editId) : getNextId(),
+            ...articleData,
+            views: 0,
+            isUserArticle: true,
+          };
+          if (editId) {
+            const idx = articles.findIndex(a => a.id === parseInt(editId));
+            if (idx >= 0) articles[idx] = article;
+          } else {
+            articles.push(article);
+          }
+          saveUserArticles(articles);
+        }
         showToast(editId ? '文章已更新！' : '文章已發布！');
         clearForm();
         renderArticleList();
@@ -709,18 +720,47 @@
       document.getElementById('formReadTime').value = '5';
       document.getElementById('formDate').value = new Date().toISOString().split('T')[0];
       document.getElementById('editId').value = '';
+      document.getElementById('editIsBuiltIn').value = '';
       document.getElementById('imagePreview').style.display = 'none';
       document.getElementById('btnSave').textContent = '發布文章';
     }
 
+    function isBuiltInArticle(id) {
+      return ARTICLES.some(a => a.id === id);
+    }
+
+    function getEditedBuiltIn() {
+      return JSON.parse(localStorage.getItem('edited_builtin_articles') || '{}');
+    }
+    function saveEditedBuiltIn(obj) {
+      localStorage.setItem('edited_builtin_articles', JSON.stringify(obj));
+    }
+    function getDeletedBuiltIn() {
+      return JSON.parse(localStorage.getItem('deleted_builtin_articles') || '[]');
+    }
+    function saveDeletedBuiltIn(arr) {
+      localStorage.setItem('deleted_builtin_articles', JSON.stringify(arr));
+    }
+
+    function findAnyArticle(id) {
+      const userArticle = getUserArticles().find(a => a.id === id);
+      if (userArticle) return userArticle;
+
+      const builtIn = ARTICLES.find(a => a.id === id);
+      if (builtIn) {
+        const edited = getEditedBuiltIn();
+        return edited[id] ? { ...builtIn, ...edited[id] } : builtIn;
+      }
+      return null;
+    }
+
     function editArticle(id) {
-      const articles = getUserArticles();
-      const article = articles.find(a => a.id === id);
+      const article = findAnyArticle(id);
       if (!article) return;
 
       document.getElementById('editId').value = id;
+      document.getElementById('editIsBuiltIn').value = isBuiltInArticle(id) ? '1' : '';
       document.getElementById('formTitle').value = article.title;
-      // Set country
       const builtInCountry = COUNTRIES.find(c => c.id === article.country);
       const sel = document.getElementById('formCountrySelect');
       if (builtInCountry) {
@@ -744,7 +784,6 @@
       document.getElementById('formReadTime').value = article.readTime;
       document.getElementById('btnSave').textContent = '更新文章';
 
-      // Switch to add tab
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       document.querySelector('[data-tab="add"]').classList.add('active');
@@ -765,24 +804,63 @@
 
     function deleteArticle(id) {
       if (!confirm('確定要刪除這篇文章嗎？')) return;
-      const articles = getUserArticles().filter(a => a.id !== id);
-      saveUserArticles(articles);
+
+      if (isBuiltInArticle(id)) {
+        const deleted = getDeletedBuiltIn();
+        if (!deleted.includes(id)) {
+          deleted.push(id);
+          saveDeletedBuiltIn(deleted);
+        }
+        const edited = getEditedBuiltIn();
+        delete edited[id];
+        saveEditedBuiltIn(edited);
+      } else {
+        const articles = getUserArticles().filter(a => a.id !== id);
+        saveUserArticles(articles);
+      }
       renderArticleList();
       showToast('文章已刪除');
     }
 
+    function restoreArticle(id) {
+      const deleted = getDeletedBuiltIn().filter(d => d !== id);
+      saveDeletedBuiltIn(deleted);
+      renderArticleList();
+      showToast('文章已還原');
+    }
+
+    function getAllArticlesForAdmin() {
+      const userArticles = getUserArticles();
+      const editedBuiltIn = getEditedBuiltIn();
+      const deletedBuiltIn = getDeletedBuiltIn();
+
+      const builtInActive = ARTICLES
+        .filter(a => !deletedBuiltIn.includes(a.id))
+        .map(a => editedBuiltIn[a.id] ? { ...a, ...editedBuiltIn[a.id], _isBuiltIn: true } : { ...a, _isBuiltIn: true });
+
+      const builtInDeleted = ARTICLES
+        .filter(a => deletedBuiltIn.includes(a.id))
+        .map(a => ({ ...a, _isBuiltIn: true, _isDeleted: true }));
+
+      return { active: [...builtInActive, ...userArticles], deleted: builtInDeleted };
+    }
+
     function renderArticleList() {
-      const articles = getUserArticles();
+      const { active, deleted } = getAllArticlesForAdmin();
       const table = document.getElementById('articleTable');
       const empty = document.getElementById('emptyState');
       const badge = document.getElementById('articleCountBadge');
 
-      badge.textContent = articles.length;
+      badge.textContent = active.length;
 
-      // Remove old rows (keep header)
-      table.querySelectorAll('.article-row:not(.header)').forEach(r => r.remove());
+      // Remove all rows and separators (keep only header)
+      Array.from(table.children).forEach(el => {
+        if (!el.classList.contains('header')) el.remove();
+      });
 
-      if (articles.length === 0) {
+      const allCountries = [...COUNTRIES, ...JSON.parse(localStorage.getItem('custom_countries') || '[]')];
+
+      if (active.length === 0 && deleted.length === 0) {
         empty.style.display = 'block';
         table.style.display = 'none';
         return;
@@ -791,15 +869,16 @@
       empty.style.display = 'none';
       table.style.display = 'block';
 
-      articles.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(article => {
-        const country = COUNTRIES.find(c => c.id === article.country);
+      active.sort((a, b) => new Date(b.date) - new Date(a.date)).forEach(article => {
+        const country = allCountries.find(c => c.id === article.country);
+        const tag = article._isBuiltIn ? '<span style="font-size:11px;background:#e8f5e9;color:#2d6a4f;padding:2px 6px;border-radius:4px;margin-left:6px;">內建</span>' : '';
         const row = document.createElement('div');
         row.className = 'article-row';
         row.innerHTML = `
           <div class="article-row-thumb">
             <img src="${article.image}" alt="" loading="lazy">
           </div>
-          <div class="article-row-title">${article.title}</div>
+          <div class="article-row-title">${article.title}${tag}</div>
           <div class="article-row-country">${country ? country.emoji + ' ' + country.name : ''}</div>
           <div class="article-row-date">${article.date}</div>
           <div class="article-row-actions">
@@ -808,6 +887,31 @@
           </div>`;
         table.appendChild(row);
       });
+
+      if (deleted.length > 0) {
+        const sep = document.createElement('div');
+        sep.style.cssText = 'padding:12px 20px;background:#fff3cd;color:#856404;font-size:13px;font-weight:600;border-bottom:1px solid var(--border);';
+        sep.textContent = `🗑️ 已刪除的內建文章（${deleted.length} 篇，可還原）`;
+        table.appendChild(sep);
+
+        deleted.forEach(article => {
+          const country = allCountries.find(c => c.id === article.country);
+          const row = document.createElement('div');
+          row.className = 'article-row';
+          row.style.opacity = '0.6';
+          row.innerHTML = `
+            <div class="article-row-thumb">
+              <img src="${article.image}" alt="" loading="lazy">
+            </div>
+            <div class="article-row-title" style="text-decoration:line-through;">${article.title}</div>
+            <div class="article-row-country">${country ? country.emoji + ' ' + country.name : ''}</div>
+            <div class="article-row-date">${article.date}</div>
+            <div class="article-row-actions">
+              <button class="btn btn-sm btn-secondary" onclick="restoreArticle(${article.id})">還原</button>
+            </div>`;
+          table.appendChild(row);
+        });
+      }
     }
   </script>
 </body>
